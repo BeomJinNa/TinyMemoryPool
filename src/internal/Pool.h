@@ -2,65 +2,69 @@
 
 #include <cstddef>
 #include <mutex>
-#include <vector>
 
 #include <tbb/concurrent_queue.h>
 
 namespace TinyMemoryPool::Detail
 {
-class MemoryManager;
 
 /**
  * @class Pool
- * @brief 단일 크기의 청크(Chunk)들을 관리하는 내부 클래스입니다.
- * 이 클래스는 스레드로부터의 동시 확장 요청에 안전하도록 설계되었습니다.
+ * @brief 단일 크기의 메모리 청크(Chunk)들을 관리하는 Lock-Free 기반(부분적) 풀 클래스.
+ * @note Intel TBB의 concurrent_queue를 사용하여 대부분의 할당/해제 시 락 경합이 없음.
  */
 class Pool
 {
   public:
+    Pool() = default;
+    ~Pool() = default;
+
+    Pool(const Pool&) = delete;
+    Pool& operator=(const Pool&) = delete;
+
     /**
-     * @brief Pool을 초기화합니다.
-     * @param chunkSize 이 풀이 관리할 각 청크의 바이트 크기.
-     * @param initialBlockSize 최초에 할당받을 메모리 블록의 전체 크기.
+     * @brief 풀을 초기화하고 첫 메모리 블록을 할당합니다.
+     * @param chunkSize 관리할 청크의 크기 (Byte)
+     * @param initialBlockSize 최초 할당할 블록의 크기 (Byte)
      */
     void Initialize(std::size_t chunkSize, std::size_t initialBlockSize);
 
     /**
-     * @brief Pool을 종료하고 내부 상태를 정리합니다.
+     * @brief 풀을 종료하고 내부 큐를 정리합니다.
+     * 실제 메모리 해제는 MemoryManager가 프로그램 종료 시 일괄 수행합니다.
      */
     void Shutdown() noexcept;
 
     /**
-     * @brief 가용 청크 리스트(Free List)에서 메모리 청크 하나를 가져옵니다.
-     * @return 사용 가능한 메모리 청크의 유효한 포인터. (실패 시 프로그램 종료)
+     * @brief 가용 청크를 하나 가져옵니다. (Thread-Safe)
+     * @return 유효한 메모리 주소 (실패 시 프로그램 종료)
      */
     [[nodiscard]] void* Pop();
 
     /**
-     * @brief 사용이 끝난 메모리 청크를 가용 청크 리스트에 반납합니다.
-     * @param ptr 반납할 메모리 청크의 포인터.
+     * @brief 사용한 청크를 반납합니다. (Thread-Safe)
      */
     void Push(void* ptr);
 
     /**
      * @brief 이 풀이 관리하는 청크의 크기를 반환합니다.
-     * @return 청크의 바이트 크기.
      */
     std::size_t GetChunkSize() const noexcept;
 
   private:
     /**
-     * @brief 가용 청크가 부족할 때 새로운 메모리 블록을 할당받아 풀을 확장합니다.
-     * @return 확장 성공 여부. (실패 시 프로그램 종료)
+     * @brief 가용 청크가 없을 때 MemoryManager로부터 새 블록을 할당받아 확장합니다.
+     * @note 내부적으로 Mutex를 사용하며 Double-Checked Locking으로 보호됩니다.
      */
     bool Grow();
 
+  private:
     std::size_t mChunkSize = 0;
-    std::size_t mNextBlockSize = 0; // 다음 확장 시 할당할 블록 크기
+    std::size_t mNextBlockSize = 0;
 
     tbb::concurrent_queue<void*> mFreeList;
 
-    std::vector<void*> mMemoryBlocks;
+    // 확장 시 동기화를 위한 뮤텍스 (Cold Path 전용)
     std::mutex mGrowMutex;
 };
 
