@@ -3,19 +3,22 @@
 #include <exception>
 #include <iostream>
 
-// 디버그 모드 감지
+/// @name TinyMemoryPool Debug Macros
+/// {@
+
 #if !defined(NDEBUG) || defined(_DEBUG)
 #include <cassert>
 #define TMP_ASSERT(condition) assert(condition)
 #else
-// 릴리즈 모드에서는 아무것도 안 함 (최적화)
 #define TMP_ASSERT(condition) ((void) 0)
 #endif
 
-// 치명적 오류는 언제나 프로그램 종료
+/// @brief 복구 불가능한 치명적 오류 시 로그 출력 후 프로그램을 종료한다.
 #define TMP_FATAL_ERROR(message)                                                                                       \
     do                                                                                                                 \
     {                                                                                                                  \
         std::cerr << "[TinyMemoryPool Fatal] " << message << std::endl;                                                \
         std::terminate();                                                                                              \
     } while(0)
+
+/// @}

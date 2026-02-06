@@ -4,12 +4,13 @@
 
 namespace TinyMemoryPool::Detail
 {
+
 void* EngineAllocate(std::size_t size)
 {
     return PoolManager::GetInstance().Allocate(size);
 }
 
-void EngineDeallocate(void* ptr, std::size_t /*size*/) // size는 내부에서 안 쓸 경우 주석 처리
+void EngineDeallocate(void* ptr, [[maybe_unused]] std::size_t size)
 {
     PoolManager::GetInstance().Deallocate(ptr);
 }

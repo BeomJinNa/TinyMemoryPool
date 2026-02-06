@@ -16,6 +16,7 @@ lib/
 *.suo
 *.user
 *.sln.docstates
+*.bak
 
 # 컴파일러 생성 파일
 *.o

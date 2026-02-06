@@ -1,16 +1,19 @@
 #pragma once
 
+#include "Detail/MemoryApi.h"
+
 #include <cstddef>
 #include <limits>
-#include <new>         // std::bad_alloc, std::bad_array_new_length
-#include <type_traits> // std::true_type
-
-#include "Detail/MemoryApi.h"
+#include <new>
+#include <type_traits>
 
 namespace TinyMemoryPool
 {
 
-template <typename T> class Allocator
+/// @brief STL 호환 커스텀 Allocator.
+// 내부적으로 PoolManager를 통해 메모리를 할당/해제한다.
+template <typename T>
+class Allocator
 {
   public:
     using value_type = T;
@@ -21,7 +24,8 @@ template <typename T> class Allocator
     Allocator() noexcept = default;
     Allocator(const Allocator&) noexcept = default;
 
-    template <typename U> Allocator(const Allocator<U>&) noexcept
+    template <typename U>
+    Allocator(const Allocator<U>&) noexcept
     {
     }
 
@@ -49,18 +53,21 @@ template <typename T> class Allocator
         Detail::EngineDeallocate(p, n * sizeof(T));
     }
 
-    template <typename U> struct rebind
+    template <typename U>
+    struct rebind
     {
         using other = Allocator<U>;
     };
 };
 
-template <typename T, typename U> bool operator==(const Allocator<T>&, const Allocator<U>&) noexcept
+template <typename T, typename U>
+bool operator==(const Allocator<T>&, const Allocator<U>&) noexcept
 {
     return true;
 }
 
-template <typename T, typename U> bool operator!=(const Allocator<T>&, const Allocator<U>&) noexcept
+template <typename T, typename U>
+bool operator!=(const Allocator<T>&, const Allocator<U>&) noexcept
 {
     return false;
 }
