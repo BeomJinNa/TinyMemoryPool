@@ -5,8 +5,8 @@
 namespace TinyMemoryPool::Detail
 {
 
-/// @brief PoolManager ½Ì±ÛÅÏÀ¸·Î ¿¬°áµÇ´Â ÇÒ´ç ºê¸´Áö ÇÔ¼ö.
-/// @note LTO(Link Time Optimization)¸¦ ÅëÇØ ÃÖÁ¾ ¹ÙÀÌ³Ê¸®¿¡¼­ ÀÎ¶óÀÎ Ã³¸®µÈ´Ù.
+/// @brief PoolManager ì‹±ê¸€í„´ìœ¼ë¡œ ì—°ê²°ë˜ëŠ” í• ë‹¹ ë¸Œë¦¿ì§€ í•¨ìˆ˜.
+/// @note LTO(Link Time Optimization)ë¥¼ í†µí•´ ìµœì¢… ë°”ì´ë„ˆë¦¬ì—ì„œ ì¸ë¼ì¸ ì²˜ë¦¬ëœë‹¤.
 [[nodiscard]] void* EngineAllocate(std::size_t size);
 
 void EngineDeallocate(void* ptr, std::size_t size);

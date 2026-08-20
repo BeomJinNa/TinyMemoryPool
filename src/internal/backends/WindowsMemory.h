@@ -11,8 +11,8 @@
 namespace TinyMemoryPool::Detail
 {
 
-/// @brief Win32 VirtualAlloc/VirtualFree ±â¹İ °¡»ó ¸Ş¸ğ¸® ¹é¿£µå.
-/// ÀÎ½ºÅÏ½º »ı¼ºÀ» ±İÁöÇÑ À¯Æ¿¸®Æ¼ Å¬·¡½º.
+/// @brief Win32 VirtualAlloc/VirtualFree ê¸°ë°˜ ê°€ìƒ ë©”ëª¨ë¦¬ ë°±ì—”ë“œ.
+/// ì¸ìŠ¤í„´ìŠ¤ ìƒì„±ì„ ê¸ˆì§€í•œ ìœ í‹¸ë¦¬í‹° í´ë˜ìŠ¤.
 class WindowsMemory final
 {
   public:

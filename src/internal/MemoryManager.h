@@ -8,8 +8,8 @@
 namespace TinyMemoryPool
 {
 
-/// @brief OS·ÎºÎÅÍ °¡»ó ¸Ş¸ğ¸®¸¦ ¿¹¾à(Reserve)ÇÏ°í Ä¿¹Ô(Commit) ´ÜÀ§·Î ºĞ¹èÇÏ´Â Áß¾Ó °ü¸®ÀÚ.
-/// ½Ì±ÛÅÏ ÆĞÅÏ Àû¿ë. ÇÁ·Î±×·¥ Á¾·á ½Ã ¿¹¾à ¸Ş¸ğ¸®¸¦ ÀÏ°ı ÇØÁ¦ÇÑ´Ù.
+/// @brief OSë¡œë¶€í„° ê°€ìƒ ë©”ëª¨ë¦¬ë¥¼ ì˜ˆì•½(Reserve)í•˜ê³  ì»¤ë°‹(Commit) ë‹¨ìœ„ë¡œ ë¶„ë°°í•˜ëŠ” ì¤‘ì•™ ê´€ë¦¬ì.
+/// ì‹±ê¸€í„´ íŒ¨í„´ ì ìš©. í”„ë¡œê·¸ë¨ ì¢…ë£Œ ì‹œ ì˜ˆì•½ ë©”ëª¨ë¦¬ë¥¼ ì¼ê´„ í•´ì œí•œë‹¤.
 class MemoryManager final
 {
   public:
@@ -18,8 +18,8 @@ class MemoryManager final
     void Initialize(const MemoryManagerConfig& config);
     void Shutdown() noexcept;
 
-    /// @brief ÆäÀÌÁö Á¤·ÄµÈ ¸Ş¸ğ¸® ºí·ÏÀ» Ä¿¹ÔÇÏ¿© ¹İÈ¯ÇÑ´Ù.
-    /// @param size ¿äÃ» Å©±â (³»ºÎ¿¡¼­ ÆäÀÌÁö ´ÜÀ§·Î ¿Ã¸² Á¤·ÄµÊ).
+    /// @brief í˜ì´ì§€ ì •ë ¬ëœ ë©”ëª¨ë¦¬ ë¸”ë¡ì„ ì»¤ë°‹í•˜ì—¬ ë°˜í™˜í•œë‹¤.
+    /// @param size ìš”ì²­ í¬ê¸° (ë‚´ë¶€ì—ì„œ í˜ì´ì§€ ë‹¨ìœ„ë¡œ ì˜¬ë¦¼ ì •ë ¬ë¨).
     [[nodiscard]] void* AllocateBlock(std::size_t size);
 
   private:

@@ -8,14 +8,14 @@
 namespace TinyMemoryPool
 {
 
-/// @brief °³º° Ç®ÀÇ Ã»Å©/ºí·Ï Å©±â ¼³Á¤.
+/// @brief ê°œë³„ í’€ì˜ ì²­í¬/ë¸”ë¡ í¬ê¸° ì„¤ì •.
 struct PoolConfig
 {
     std::size_t ChunkSize = 0;
     std::size_t InitialBlockSize = 0;
 };
 
-/// @brief MemoryManager ÀüÃ¼ ÃÊ±âÈ­ ¼³Á¤.
+/// @brief MemoryManager ì „ì²´ ì´ˆê¸°í™” ì„¤ì •.
 struct MemoryManagerConfig
 {
     std::size_t TotalReserveSize = 1024 * 1024 * 1024;

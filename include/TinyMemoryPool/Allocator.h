@@ -10,8 +10,8 @@
 namespace TinyMemoryPool
 {
 
-/// @brief STL È£È¯ Ä¿½ºÅÒ Allocator.
-// ³»ºÎÀûÀ¸·Î PoolManager¸¦ ÅëÇØ ¸Ş¸ğ¸®¸¦ ÇÒ´ç/ÇØÁ¦ÇÑ´Ù.
+/// @brief STL í˜¸í™˜ ì»¤ìŠ¤í…€ Allocator.
+// ë‚´ë¶€ì ìœ¼ë¡œ PoolManagerë¥¼ í†µí•´ ë©”ëª¨ë¦¬ë¥¼ í• ë‹¹/í•´ì œí•œë‹¤.
 template <typename T>
 class Allocator
 {

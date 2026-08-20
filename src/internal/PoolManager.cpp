@@ -60,7 +60,7 @@ void PoolManager::Initialize()
     {
         auto newPool = std::make_unique<Pool>();
 
-        // ÀÛÀº Ã»Å©ÀÏ¼ö·Ï ÃÊ±â È®º¸·®À» ´Ã·Á Hot Path¿¡¼­ÀÇ Grow È£ÃâÀ» ÁÙÀÓ
+        // ì‘ì€ ì²­í¬ì¼ìˆ˜ë¡ ì´ˆê¸° í™•ë³´ëŸ‰ì„ ëŠ˜ë ¤ Hot Pathì—ì„œì˜ Grow í˜¸ì¶œì„ ì¤„ì„
         std::size_t initialItemCount = (currentChunkSize <= 256) ? 4096 : (currentChunkSize <= 1024) ? 1024 : 256;
 
         newPool->Initialize(currentChunkSize, currentChunkSize * initialItemCount);
@@ -108,7 +108,7 @@ void PoolManager::Shutdown()
     }
     else
     {
-        // 4KB ÃÊ°ú ½Ã ½Ã½ºÅÛ ÇÒ´çÀ¸·Î fallback
+        // 4KB ì´ˆê³¼ ì‹œ ì‹œìŠ¤í…œ í• ë‹¹ìœ¼ë¡œ fallback
         void* block = std::malloc(totalSize);
         if(!block) [[unlikely]]
             return nullptr;
@@ -141,10 +141,10 @@ void PoolManager::Deallocate(void* ptr)
 
 [[nodiscard]] std::size_t PoolManager::GetPoolIndex(std::size_t totalSize) const
 {
-    // 64B ¹Ì¸¸ ¿äÃ»µµ ÃÖ¼Ò 64B Ç®(index 0)·Î ¶ó¿ìÆÃ
+    // 64B ë¯¸ë§Œ ìš”ì²­ë„ ìµœì†Œ 64B í’€(index 0)ë¡œ ë¼ìš°íŒ…
     const std::size_t clampedSize = std::max(totalSize, static_cast<std::size_t>(1 << MIN_BIT_SHIFT));
 
-    // bit_width: C++20 <bit>. ´ëºÎºĞ BSR/LZCNT ÇÏµå¿ş¾î ¸í·É¾î·Î º¯È¯µÊ.
+    // bit_width: C++20 <bit>. ëŒ€ë¶€ë¶„ BSR/LZCNT í•˜ë“œì›¨ì–´ ëª…ë ¹ì–´ë¡œ ë³€í™˜ë¨.
     return std::bit_width(clampedSize - 1) - MIN_BIT_SHIFT;
 }
 

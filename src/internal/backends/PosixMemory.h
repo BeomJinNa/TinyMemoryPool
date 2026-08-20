@@ -12,8 +12,8 @@
 namespace TinyMemoryPool::Detail
 {
 
-/// @brief POSIX mmap/munmap ±â¹İ °¡»ó ¸Ş¸ğ¸® ¹é¿£µå.
-/// ÀÎ½ºÅÏ½º »ı¼ºÀ» ±İÁöÇÑ À¯Æ¿¸®Æ¼ Å¬·¡½º.
+/// @brief POSIX mmap/munmap ê¸°ë°˜ ê°€ìƒ ë©”ëª¨ë¦¬ ë°±ì—”ë“œ.
+/// ì¸ìŠ¤í„´ìŠ¤ ìƒì„±ì„ ê¸ˆì§€í•œ ìœ í‹¸ë¦¬í‹° í´ë˜ìŠ¤.
 class PosixMemory final
 {
   public:

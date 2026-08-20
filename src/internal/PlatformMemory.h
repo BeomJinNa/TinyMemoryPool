@@ -15,8 +15,8 @@
 namespace TinyMemoryPool::Detail
 {
 
-/// @brief ÇÃ·§Æûº° °¡»ó ¸Ş¸ğ¸® API¸¦ ÅëÇÕÇÏ´Â ÆÄ»çµå Å¬·¡½º.
-/// Reserve ½ÇÆĞ ½Ã TMP_FATAL_ERROR·Î Áï½Ã Á¾·áÇÑ´Ù.
+/// @brief í”Œë«í¼ë³„ ê°€ìƒ ë©”ëª¨ë¦¬ APIë¥¼ í†µí•©í•˜ëŠ” íŒŒì‚¬ë“œ í´ë˜ìŠ¤.
+/// Reserve ì‹¤íŒ¨ ì‹œ TMP_FATAL_ERRORë¡œ ì¦‰ì‹œ ì¢…ë£Œí•œë‹¤.
 class PlatformMemory final
 {
   public:

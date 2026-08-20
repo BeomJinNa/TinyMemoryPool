@@ -8,8 +8,8 @@
 namespace TinyMemoryPool::Detail
 {
 
-/// @brief ´ÜÀÏ Å©±âÀÇ ¸Ş¸ğ¸® Ã»Å©µéÀ» °ü¸®ÇÏ´Â Lock-Free ±â¹İ(ºÎºĞÀû) Ç®.
-/// Intel TBB concurrent_queue¸¦ »ç¿ëÇÏ¿© ´ëºÎºĞÀÇ ÇÒ´ç/ÇØÁ¦°¡ ¶ô ¾øÀÌ µ¿ÀÛÇÑ´Ù.
+/// @brief ë‹¨ì¼ í¬ê¸°ì˜ ë©”ëª¨ë¦¬ ì²­í¬ë“¤ì„ ê´€ë¦¬í•˜ëŠ” Lock-Free ê¸°ë°˜(ë¶€ë¶„ì ) í’€.
+/// Intel TBB concurrent_queueë¥¼ ì‚¬ìš©í•˜ì—¬ ëŒ€ë¶€ë¶„ì˜ í• ë‹¹/í•´ì œê°€ ë½ ì—†ì´ ë™ì‘í•œë‹¤.
 class Pool final
 {
   public:
@@ -19,27 +19,27 @@ class Pool final
     Pool(const Pool&) = delete;
     Pool& operator=(const Pool&) = delete;
 
-    /// @brief Ç®À» ÃÊ±âÈ­ÇÏ°í Ã¹ ¸Ş¸ğ¸® ºí·ÏÀ» ÇÒ´çÇÑ´Ù.
-    /// @param chunkSize °ü¸®ÇÒ Ã»Å©ÀÇ Å©±â (Byte).
-    /// @param initialBlockSize ÃÖÃÊ ÇÒ´çÇÒ ºí·ÏÀÇ Å©±â (Byte).
+    /// @brief í’€ì„ ì´ˆê¸°í™”í•˜ê³  ì²« ë©”ëª¨ë¦¬ ë¸”ë¡ì„ í• ë‹¹í•œë‹¤.
+    /// @param chunkSize ê´€ë¦¬í•  ì²­í¬ì˜ í¬ê¸° (Byte).
+    /// @param initialBlockSize ìµœì´ˆ í• ë‹¹í•  ë¸”ë¡ì˜ í¬ê¸° (Byte).
     void Initialize(std::size_t chunkSize, std::size_t initialBlockSize);
 
-    /// @brief Ç®À» Á¾·áÇÏ°í ³»ºÎ Å¥¸¦ Á¤¸®ÇÑ´Ù.
-    /// @note ½ÇÁ¦ ¸Ş¸ğ¸® ÇØÁ¦´Â MemoryManager°¡ ÇÁ·Î±×·¥ Á¾·á ½Ã ÀÏ°ı ¼öÇàÇÑ´Ù.
+    /// @brief í’€ì„ ì¢…ë£Œí•˜ê³  ë‚´ë¶€ íë¥¼ ì •ë¦¬í•œë‹¤.
+    /// @note ì‹¤ì œ ë©”ëª¨ë¦¬ í•´ì œëŠ” MemoryManagerê°€ í”„ë¡œê·¸ë¨ ì¢…ë£Œ ì‹œ ì¼ê´„ ìˆ˜í–‰í•œë‹¤.
     void Shutdown() noexcept;
 
-    /// @brief °¡¿ë Ã»Å©¸¦ ÇÏ³ª ²¨³½´Ù (Thread-Safe).
-    /// @return À¯È¿ÇÑ ¸Ş¸ğ¸® ÁÖ¼Ò. ½ÇÆĞ ½Ã TMP_FATAL_ERROR·Î Á¾·á.
+    /// @brief ê°€ìš© ì²­í¬ë¥¼ í•˜ë‚˜ êº¼ë‚¸ë‹¤ (Thread-Safe).
+    /// @return ìœ íš¨í•œ ë©”ëª¨ë¦¬ ì£¼ì†Œ. ì‹¤íŒ¨ ì‹œ TMP_FATAL_ERRORë¡œ ì¢…ë£Œ.
     [[nodiscard]] void* Pop();
 
-    /// @brief »ç¿ë ¿Ï·áµÈ Ã»Å©¸¦ ¹İ³³ÇÑ´Ù (Thread-Safe).
+    /// @brief ì‚¬ìš© ì™„ë£Œëœ ì²­í¬ë¥¼ ë°˜ë‚©í•œë‹¤ (Thread-Safe).
     void Push(void* ptr);
 
     std::size_t GetChunkSize() const noexcept;
 
   private:
-    /// @brief °¡¿ë Ã»Å© ¼ÒÁø ½Ã MemoryManager·ÎºÎÅÍ »õ ºí·ÏÀ» ¹Ş¾Æ È®ÀåÇÑ´Ù.
-    /// @note Double-Checked LockingÀ¸·Î Áßº¹ È®ÀåÀ» ¹æÁöÇÑ´Ù.
+    /// @brief ê°€ìš© ì²­í¬ ì†Œì§„ ì‹œ MemoryManagerë¡œë¶€í„° ìƒˆ ë¸”ë¡ì„ ë°›ì•„ í™•ì¥í•œë‹¤.
+    /// @note Double-Checked Lockingìœ¼ë¡œ ì¤‘ë³µ í™•ì¥ì„ ë°©ì§€í•œë‹¤.
     bool Grow();
 
   private:
@@ -48,7 +48,7 @@ class Pool final
 
     tbb::concurrent_queue<void*> mFreeList;
 
-    std::mutex mGrowMutex; ///< È®Àå(Grow) ½Ã¿¡¸¸ »ç¿ëµÇ´Â Cold Path ¹ÂÅØ½º.
+    std::mutex mGrowMutex; ///< í™•ì¥(Grow) ì‹œì—ë§Œ ì‚¬ìš©ë˜ëŠ” Cold Path ë®¤í…ìŠ¤.
 };
 
 } // namespace TinyMemoryPool::Detail

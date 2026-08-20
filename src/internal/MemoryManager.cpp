@@ -65,7 +65,7 @@ void MemoryManager::Shutdown() noexcept
     const std::size_t pageSize = mPageSize;
     TMP_ASSERT((pageSize & (pageSize - 1)) == 0);
 
-    // ÆäÀÌÁö Á¤·Ä: ¿äÃ» Å©±â¸¦ ÆäÀÌÁö °æ°è·Î ¿Ã¸² (ºñÆ® ¸¶½ºÅ© ¹æ½Ä)
+    // íŽ˜ì´ì§€ ì •ë ¬: ìš”ì²­ í¬ê¸°ë¥¼ íŽ˜ì´ì§€ ê²½ê³„ë¡œ ì˜¬ë¦¼ (ë¹„íŠ¸ ë§ˆìŠ¤í¬ ë°©ì‹)
     const std::size_t alignedSize = (size + pageSize - 1) & ~(pageSize - 1);
 
     if(mCurrentCommitOffset + alignedSize > mTotalReservedSize)

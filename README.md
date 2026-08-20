@@ -1,68 +1,68 @@
 # TinyMemoryPool
 
-**TinyMemoryPool**Àº C++20 Ç¥ÁØÀ» ÁØ¼öÇÏ´Â ½º·¹µå ¾ÈÀü(Thread-Safe) ¸Ş¸ğ¸® Ç® ¶óÀÌºê·¯¸®ÀÔ´Ï´Ù.
-STL ÄÁÅ×ÀÌ³Ê(`std::vector`, `std::map` µî)¿Í È£È¯µÇ´Â `Allocator` ÀÎÅÍÆäÀÌ½º¸¦ Á¦°øÇÏ¸ç, ³»ºÎÀûÀ¸·Î Intel TBBÀÇ `concurrent_queue`¸¦ »ç¿ëÇÏ¿© ¸ÖÆ¼ ½º·¹µå È¯°æ¿¡¼­ÀÇ ¶ô °æÇÕ(Lock Contention)À» ÃÖ¼ÒÈ­ÇÕ´Ï´Ù.
+**TinyMemoryPool**ì€ C++20 í‘œì¤€ì„ ì¤€ìˆ˜í•˜ëŠ” ìŠ¤ë ˆë“œ ì•ˆì „(Thread-Safe) ë©”ëª¨ë¦¬ í’€ ë¼ì´ë¸ŒëŸ¬ë¦¬ì…ë‹ˆë‹¤.
+STL ì»¨í…Œì´ë„ˆ(`std::vector`, `std::map` ë“±)ì™€ í˜¸í™˜ë˜ëŠ” `Allocator` ì¸í„°í˜ì´ìŠ¤ë¥¼ ì œê³µí•˜ë©°, ë‚´ë¶€ì ìœ¼ë¡œ Intel TBBì˜ `concurrent_queue`ë¥¼ ì‚¬ìš©í•˜ì—¬ ë©€í‹° ìŠ¤ë ˆë“œ í™˜ê²½ì—ì„œì˜ ë½ ê²½í•©(Lock Contention)ì„ ìµœì†Œí™”í•©ë‹ˆë‹¤.
 
-## 1. ÁÖ¿ä Æ¯Â¡ (Features)
+## 1. ì£¼ìš” íŠ¹ì§• (Features)
 
-* **STL È£È¯**: `std::allocator_traits`¸¦ Áö¿øÇÏ¿© ¸ğµç STL ÄÁÅ×ÀÌ³Ê¿¡ Áï½Ã Àû¿ë °¡´É.
-* **Thread-Safe**: Lock-Free ÀÚ·á±¸Á¶¸¦ »ç¿ëÇÏ¿© ¸ÖÆ¼ ½º·¹µå È¯°æ¿¡¼­ ¾ÈÀüÇÏ°Ô µ¿ÀÛ.
-* **Header Isolation**: Bridge ÆĞÅÏÀ» Àû¿ëÇÏ¿©, ¶óÀÌºê·¯¸® »ç¿ë ½Ã `<windows.h>`³ª `tbb` Çì´õ ÀÇÁ¸¼ºÀÌ ¿ÜºÎ·Î ÀüÆÄµÇÁö ¾ÊÀ½.
-* **±¸Á¶**:
+* **STL í˜¸í™˜**: `std::allocator_traits`ë¥¼ ì§€ì›í•˜ì—¬ ëª¨ë“  STL ì»¨í…Œì´ë„ˆì— ì¦‰ì‹œ ì ìš© ê°€ëŠ¥.
+* **Thread-Safe**: Lock-Free ìë£Œêµ¬ì¡°ë¥¼ ì‚¬ìš©í•˜ì—¬ ë©€í‹° ìŠ¤ë ˆë“œ í™˜ê²½ì—ì„œ ì•ˆì „í•˜ê²Œ ë™ì‘.
+* **Header Isolation**: Bridge íŒ¨í„´ì„ ì ìš©í•˜ì—¬, ë¼ì´ë¸ŒëŸ¬ë¦¬ ì‚¬ìš© ì‹œ `<windows.h>`ë‚˜ `tbb` í—¤ë” ì˜ì¡´ì„±ì´ ì™¸ë¶€ë¡œ ì „íŒŒë˜ì§€ ì•ŠìŒ.
+* **êµ¬ì¡°**:
     * **Layer 1**: STL Allocator Interface (Stateless)
     * **Layer 2**: Pool Manager (Singleton Engine, 64B~4KB Buckets)
     * **Layer 3**: OS Memory Interface (`VirtualAlloc` / `mmap`)
 
-## 2. ¿ä±¸ »çÇ× (Requirements)
+## 2. ìš”êµ¬ ì‚¬í•­ (Requirements)
 
-ÀÌ ¶óÀÌºê·¯¸®¸¦ »ç¿ëÇÏ±â À§ÇØ¼­´Â ´ÙÀ½ È¯°æÀÌ ÇÊ¿äÇÕ´Ï´Ù.
+ì´ ë¼ì´ë¸ŒëŸ¬ë¦¬ë¥¼ ì‚¬ìš©í•˜ê¸° ìœ„í•´ì„œëŠ” ë‹¤ìŒ í™˜ê²½ì´ í•„ìš”í•©ë‹ˆë‹¤.
 
-* **C++ Standard**: C++20 ÀÌ»ó (`std::bit_width`, `std::byte`, `concept` »ç¿ë)
-* **Build System**: CMake 3.15 ÀÌ»ó
+* **C++ Standard**: C++20 ì´ìƒ (`std::bit_width`, `std::byte`, `concept` ì‚¬ìš©)
+* **Build System**: CMake 3.15 ì´ìƒ
 * **Dependencies**:
-    * **Intel TBB (Threading Building Blocks)**: ÇÊ¼ö ÀÇÁ¸¼ºÀÔ´Ï´Ù.
-    * CMake ¼³Á¤ ½Ã `find_package(TBB CONFIG REQUIRED)`°¡ ½ÇÇàµÇ¹Ç·Î, ½Ã½ºÅÛÀÌ³ª vcpkg µîÀ» ÅëÇØ TBB°¡ ¼³Ä¡µÇ¾î ÀÖ¾î¾ß ÇÕ´Ï´Ù.
+    * **Intel TBB (Threading Building Blocks)**: í•„ìˆ˜ ì˜ì¡´ì„±ì…ë‹ˆë‹¤.
+    * CMake ì„¤ì • ì‹œ `find_package(TBB CONFIG REQUIRED)`ê°€ ì‹¤í–‰ë˜ë¯€ë¡œ, ì‹œìŠ¤í…œì´ë‚˜ vcpkg ë“±ì„ í†µí•´ TBBê°€ ì„¤ì¹˜ë˜ì–´ ìˆì–´ì•¼ í•©ë‹ˆë‹¤.
 
-## 3. ÅëÇÕ °¡ÀÌµå (Integration Guide)
+## 3. í†µí•© ê°€ì´ë“œ (Integration Guide)
 
-ÀÌ ÇÁ·ÎÁ§Æ®´Â **CMake Subdirectory** ¹æ½ÄÀ» ±ÇÀåÇÕ´Ï´Ù. ¼Ò½º ÄÚµå¸¦ Á÷Á¢ Æ÷ÇÔÇÏ¿© ºôµåÇÏ¹Ç·Î µğ¹ö±ëÀÌ ¿ëÀÌÇÕ´Ï´Ù.
+ì´ í”„ë¡œì íŠ¸ëŠ” **CMake Subdirectory** ë°©ì‹ì„ ê¶Œì¥í•©ë‹ˆë‹¤. ì†ŒìŠ¤ ì½”ë“œë¥¼ ì§ì ‘ í¬í•¨í•˜ì—¬ ë¹Œë“œí•˜ë¯€ë¡œ ë””ë²„ê¹…ì´ ìš©ì´í•©ë‹ˆë‹¤.
 
-### 3.1. ÇÁ·ÎÁ§Æ® Ãß°¡
-`git submodule` ¶Ç´Â ÄÚµå¸¦ º¹»çÇÏ¿© ÇÁ·ÎÁ§Æ®ÀÇ ÇÏÀ§ µğ·ºÅä¸®(¿¹: `third_party`)¿¡ À§Ä¡½ÃÅµ´Ï´Ù.
+### 3.1. í”„ë¡œì íŠ¸ ì¶”ê°€
+`git submodule` ë˜ëŠ” ì½”ë“œë¥¼ ë³µì‚¬í•˜ì—¬ í”„ë¡œì íŠ¸ì˜ í•˜ìœ„ ë””ë ‰í† ë¦¬(ì˜ˆ: `third_party`)ì— ìœ„ì¹˜ì‹œí‚µë‹ˆë‹¤.
 
 ```bash
-# ¿¹½Ã
+# ì˜ˆì‹œ
 git submodule add [Repository URL] third_party/TinyMemoryPool
 
 ```
 
-### 3.2. CMakeLists.txt ¼³Á¤
+### 3.2. CMakeLists.txt ì„¤ì •
 
-»ç¿ëÇÏ·Á´Â »óÀ§ ÇÁ·ÎÁ§Æ®(°ÔÀÓ ¿£Áø µî)ÀÇ `CMakeLists.txt`¿¡ ´ÙÀ½À» Ãß°¡ÇÕ´Ï´Ù.
+ì‚¬ìš©í•˜ë ¤ëŠ” ìƒìœ„ í”„ë¡œì íŠ¸(ê²Œì„ ì—”ì§„ ë“±)ì˜ `CMakeLists.txt`ì— ë‹¤ìŒì„ ì¶”ê°€í•©ë‹ˆë‹¤.
 
 ```cmake
-# 1. ¶óÀÌºê·¯¸® ÇÏÀ§ µğ·ºÅä¸® Ãß°¡
+# 1. ë¼ì´ë¸ŒëŸ¬ë¦¬ í•˜ìœ„ ë””ë ‰í† ë¦¬ ì¶”ê°€
 add_subdirectory(third_party/TinyMemoryPool)
 
-# ... (Å¸°Ù Á¤ÀÇ) ...
+# ... (íƒ€ê²Ÿ ì •ì˜) ...
 add_executable(MyGameEngine src/main.cpp)
 
-# 2. ¶óÀÌºê·¯¸® ¸µÅ©
-# TinyMemoryPool::TinyMemoryPool º°Äª(ALIAS)À» »ç¿ëÇÏ¸é
-# ÇâÈÄ find_package·Î º¯°æÇØµµ ÄÚµå ¼öÁ¤ÀÌ ÇÊ¿ä ¾ø½À´Ï´Ù.
+# 2. ë¼ì´ë¸ŒëŸ¬ë¦¬ ë§í¬
+# TinyMemoryPool::TinyMemoryPool ë³„ì¹­(ALIAS)ì„ ì‚¬ìš©í•˜ë©´
+# í–¥í›„ find_packageë¡œ ë³€ê²½í•´ë„ ì½”ë“œ ìˆ˜ì •ì´ í•„ìš” ì—†ìŠµë‹ˆë‹¤.
 target_link_libraries(MyGameEngine PRIVATE TinyMemoryPool::TinyMemoryPool)
 
-# [±ÇÀå] LTO (Link Time Optimization) È°¼ºÈ­
-# ºê¸´Áö ÇÔ¼ö(MemoryApi)ÀÇ ÀÎ¶óÀÎ ÃÖÀûÈ­¸¦ À§ÇØ È°¼ºÈ­¸¦ ±ÇÀåÇÕ´Ï´Ù.
+# [ê¶Œì¥] LTO (Link Time Optimization) í™œì„±í™”
+# ë¸Œë¦¿ì§€ í•¨ìˆ˜(MemoryApi)ì˜ ì¸ë¼ì¸ ìµœì í™”ë¥¼ ìœ„í•´ í™œì„±í™”ë¥¼ ê¶Œì¥í•©ë‹ˆë‹¤.
 set_property(TARGET MyGameEngine PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 
 ```
 
-## 4. »ç¿ë ¹æ¹ı (Usage)
+## 4. ì‚¬ìš© ë°©ë²• (Usage)
 
-¿ÜºÎ¿¡ °ø°³µÈ Çì´õ´Â ¿ÀÁ÷ `<TinyMemoryPool/Allocator.h>` ÇÏ³ªÀÔ´Ï´Ù.
+ì™¸ë¶€ì— ê³µê°œëœ í—¤ë”ëŠ” ì˜¤ì§ `<TinyMemoryPool/Allocator.h>` í•˜ë‚˜ì…ë‹ˆë‹¤.
 
-### 4.1. STL ÄÁÅ×ÀÌ³Ê Àû¿ë
+### 4.1. STL ì»¨í…Œì´ë„ˆ ì ìš©
 
 ```cpp
 #include <vector>
@@ -70,13 +70,13 @@ set_property(TARGET MyGameEngine PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 #include <TinyMemoryPool/Allocator.h>
 
 void Example() {
-    // 1. std::vector »ç¿ë ¿¹½Ã
-    // 4KB ÀÌÇÏ °´Ã¼´Â Pool¿¡¼­, 4KB ÃÊ°ú´Â mallocÀ¸·Î ÀÚµ¿ Ã³¸®µÊ
+    // 1. std::vector ì‚¬ìš© ì˜ˆì‹œ
+    // 4KB ì´í•˜ ê°ì²´ëŠ” Poolì—ì„œ, 4KB ì´ˆê³¼ëŠ” mallocìœ¼ë¡œ ìë™ ì²˜ë¦¬ë¨
     std::vector<int, TinyMemoryPool::Allocator<int>> v;
     v.reserve(1000);
     v.push_back(10);
 
-    // 2. std::map »ç¿ë ¿¹½Ã (Node ±â¹İ ÄÁÅ×ÀÌ³Ê¿¡¼­ È¿À²Àû)
+    // 2. std::map ì‚¬ìš© ì˜ˆì‹œ (Node ê¸°ë°˜ ì»¨í…Œì´ë„ˆì—ì„œ íš¨ìœ¨ì )
     std::map<int, float, std::less<int>, 
              TinyMemoryPool::Allocator<std::pair<const int, float>>> m;
     m[1] = 3.14f;
@@ -84,40 +84,40 @@ void Example() {
 
 ```
 
-### 4.2. µ¿ÀÛ ¹æ½Ä Âü°í
+### 4.2. ë™ì‘ ë°©ì‹ ì°¸ê³ 
 
-* **ÃÊ±âÈ­**: `Allocator`°¡ ÃÖÃÊ·Î ÀÎ½ºÅÏ½ºÈ­µÇ´Â ½ÃÁ¡¿¡ ³»ºÎ ¿£Áø(`PoolManager`)ÀÌ ÀÚµ¿À¸·Î ÃÊ±âÈ­µË´Ï´Ù. º°µµÀÇ `Init()` ÇÔ¼ö È£ÃâÀÌ ÇÊ¿ä ¾ø½À´Ï´Ù.
-* **Æú¹é(Fallback)**: ´ÜÀÏ ÇÒ´ç ¿äÃ» Å©±â°¡ **4096 Bytes(4KB)**¸¦ ÃÊ°úÇÒ °æ¿ì, ¸Ş¸ğ¸® Ç®À» °ÅÄ¡Áö ¾Ê°í ½Ã½ºÅÛ `malloc`À» Á÷Á¢ »ç¿ëÇÕ´Ï´Ù.
+* **ì´ˆê¸°í™”**: `Allocator`ê°€ ìµœì´ˆë¡œ ì¸ìŠ¤í„´ìŠ¤í™”ë˜ëŠ” ì‹œì ì— ë‚´ë¶€ ì—”ì§„(`PoolManager`)ì´ ìë™ìœ¼ë¡œ ì´ˆê¸°í™”ë©ë‹ˆë‹¤. ë³„ë„ì˜ `Init()` í•¨ìˆ˜ í˜¸ì¶œì´ í•„ìš” ì—†ìŠµë‹ˆë‹¤.
+* **í´ë°±(Fallback)**: ë‹¨ì¼ í• ë‹¹ ìš”ì²­ í¬ê¸°ê°€ **4096 Bytes(4KB)**ë¥¼ ì´ˆê³¼í•  ê²½ìš°, ë©”ëª¨ë¦¬ í’€ì„ ê±°ì¹˜ì§€ ì•Šê³  ì‹œìŠ¤í…œ `malloc`ì„ ì§ì ‘ ì‚¬ìš©í•©ë‹ˆë‹¤.
 
-## 5. ºôµå ¹× Å×½ºÆ® (Build & Test)
+## 5. ë¹Œë“œ ë° í…ŒìŠ¤íŠ¸ (Build & Test)
 
-¶óÀÌºê·¯¸®¸¦ ´Üµ¶À¸·Î ºôµåÇÏ°Å³ª Å×½ºÆ®¸¦ ½ÇÇàÇÒ ¶§ »ç¿ëÇÕ´Ï´Ù.
+ë¼ì´ë¸ŒëŸ¬ë¦¬ë¥¼ ë‹¨ë…ìœ¼ë¡œ ë¹Œë“œí•˜ê±°ë‚˜ í…ŒìŠ¤íŠ¸ë¥¼ ì‹¤í–‰í•  ë•Œ ì‚¬ìš©í•©ë‹ˆë‹¤.
 
 ```bash
-# ±¸¼º (Configure)
+# êµ¬ì„± (Configure)
 cmake -B out
 
-# ºôµå (Build) - ¹İµå½Ã Release ¸ğµå·Î ºôµåÇØ¾ß Á¤È®ÇÑ ¼º´ÉÀÌ ³ª¿É´Ï´Ù.
+# ë¹Œë“œ (Build) - ë°˜ë“œì‹œ Release ëª¨ë“œë¡œ ë¹Œë“œí•´ì•¼ ì •í™•í•œ ì„±ëŠ¥ì´ ë‚˜ì˜µë‹ˆë‹¤.
 cmake --build out --config Release
 
-# Å×½ºÆ® ½ÇÇà
+# í…ŒìŠ¤íŠ¸ ì‹¤í–‰
 ./out/Release/TMP_Test
 
 ```
 
-> **ÁÖÀÇ**: Debug ¸ğµå¿¡¼­´Â Intel TBBÀÇ ³»ºÎ °ËÁõ ·ÎÁ÷°ú ÀÎ¶óÀÎ ÃÖÀûÈ­ ºÎÀç·Î ÀÎÇØ ¼º´ÉÀÌ ½Ã½ºÅÛ ÇÒ´çÀÚº¸´Ù ´À¸®°Ô ÃøÁ¤µÉ ¼ö ÀÖ½À´Ï´Ù. º¥Ä¡¸¶Å·Àº ¹İµå½Ã **Release/RelWithDebInfo** ¸ğµå¿¡¼­ ¼öÇàÇÏ½Ê½Ã¿À.
+> **ì£¼ì˜**: Debug ëª¨ë“œì—ì„œëŠ” Intel TBBì˜ ë‚´ë¶€ ê²€ì¦ ë¡œì§ê³¼ ì¸ë¼ì¸ ìµœì í™” ë¶€ì¬ë¡œ ì¸í•´ ì„±ëŠ¥ì´ ì‹œìŠ¤í…œ í• ë‹¹ìë³´ë‹¤ ëŠë¦¬ê²Œ ì¸¡ì •ë  ìˆ˜ ìˆìŠµë‹ˆë‹¤. ë²¤ì¹˜ë§ˆí‚¹ì€ ë°˜ë“œì‹œ **Release/RelWithDebInfo** ëª¨ë“œì—ì„œ ìˆ˜í–‰í•˜ì‹­ì‹œì˜¤.
 
-## 6. µğ·ºÅä¸® ±¸Á¶ (Directory Structure)
+## 6. ë””ë ‰í† ë¦¬ êµ¬ì¡° (Directory Structure)
 
 ```text
 TinyMemoryPool/
-¦§¦¡¦¡ include/
-¦¢   ¦¦¦¡¦¡ TinyMemoryPool/          # [Public] ¿ÜºÎ °ø°³ Çì´õ °æ·Î
-¦¢       ¦§¦¡¦¡ Allocator.h          # »ç¿ëÀÚ°¡ include ÇÏ´Â ¸ŞÀÎ Çì´õ
-¦¢       ¦§¦¡¦¡ Config.h             # ³»ºÎ ¼³Á¤°ª
-¦¢       ¦¦¦¡¦¡ Detail/              # ±¸Çö Àº´Ğ¿ë ºê¸´Áö Çì´õ
-¦§¦¡¦¡ src/
-¦¢   ¦¦¦¡¦¡ internal/                # [Private] ³»ºÎ ±¸Çö ¼Ò½º (Pool, Manager µî)
-¦¦¦¡¦¡ tests/                       # ±â´É Å×½ºÆ® ¹× º¥Ä¡¸¶Å© ÄÚµå
+â”œâ”€â”€ include/
+â”‚   â””â”€â”€ TinyMemoryPool/          # [Public] ì™¸ë¶€ ê³µê°œ í—¤ë” ê²½ë¡œ
+â”‚       â”œâ”€â”€ Allocator.h          # ì‚¬ìš©ìê°€ include í•˜ëŠ” ë©”ì¸ í—¤ë”
+â”‚       â”œâ”€â”€ Config.h             # ë‚´ë¶€ ì„¤ì •ê°’
+â”‚       â””â”€â”€ Detail/              # êµ¬í˜„ ì€ë‹‰ìš© ë¸Œë¦¿ì§€ í—¤ë”
+â”œâ”€â”€ src/
+â”‚   â””â”€â”€ internal/                # [Private] ë‚´ë¶€ êµ¬í˜„ ì†ŒìŠ¤ (Pool, Manager ë“±)
+â””â”€â”€ tests/                       # ê¸°ëŠ¥ í…ŒìŠ¤íŠ¸ ë° ë²¤ì¹˜ë§ˆí¬ ì½”ë“œ
 
 ```

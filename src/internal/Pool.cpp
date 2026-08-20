@@ -17,7 +17,7 @@ void Pool::Initialize(std::size_t chunkSize, std::size_t initialBlockSize)
 
 void Pool::Shutdown() noexcept
 {
-    // Å¥ ³»ºÎ ³ëµå¸¸ Á¤¸®. ½ÇÁ¦ ¸Ş¸ğ¸® ºí·ÏÀº MemoryManager°¡ ¼ÒÀ¯/ÇØÁ¦ÇÑ´Ù.
+    // í ë‚´ë¶€ ë…¸ë“œë§Œ ì •ë¦¬. ì‹¤ì œ ë©”ëª¨ë¦¬ ë¸”ë¡ì€ MemoryManagerê°€ ì†Œìœ /í•´ì œí•œë‹¤.
     mFreeList.clear();
 }
 
@@ -56,7 +56,7 @@ bool Pool::Grow()
 {
     std::lock_guard<std::mutex> lock(mGrowMutex);
 
-    // ¶ô ´ë±â Áß ´Ù¸¥ ½º·¹µå°¡ ÀÌ¹Ì È®ÀåÇßÀ» ¼ö ÀÖÀ½
+    // ë½ ëŒ€ê¸° ì¤‘ ë‹¤ë¥¸ ìŠ¤ë ˆë“œê°€ ì´ë¯¸ í™•ì¥í–ˆì„ ìˆ˜ ìˆìŒ
     if(!mFreeList.empty())
     {
         return true;
@@ -73,7 +73,7 @@ bool Pool::Grow()
         currentChunk += mChunkSize;
     }
 
-    // ´ÙÀ½ È®Àå ½Ã ºí·Ï Å©±â¸¦ 2¹è·Î (Áö¼ö ¼ºÀå Àü·«)
+    // ë‹¤ìŒ í™•ì¥ ì‹œ ë¸”ë¡ í¬ê¸°ë¥¼ 2ë°°ë¡œ (ì§€ìˆ˜ ì„±ì¥ ì „ëµ)
     mNextBlockSize *= 2;
 
     return true;

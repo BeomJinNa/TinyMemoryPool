@@ -13,16 +13,16 @@ namespace TinyMemoryPool::Detail
 
 class Pool;
 
-/// @brief ¸Ş¸ğ¸® ºí·Ï ¾Õ´ÜÀÇ ¸ŞÅ¸µ¥ÀÌÅÍ (16 Bytes).
-/// @note 16¹ÙÀÌÆ® Á¤·Ä º¸ÀåÀ» À§ÇØ ÆĞµù ¾øÀÌ ±¸¼ºµÊ.
+/// @brief ë©”ëª¨ë¦¬ ë¸”ë¡ ì•ë‹¨ì˜ ë©”íƒ€ë°ì´í„° (16 Bytes).
+/// @note 16ë°”ì´íŠ¸ ì •ë ¬ ë³´ì¥ì„ ìœ„í•´ íŒ¨ë”© ì—†ì´ êµ¬ì„±ë¨.
 struct BlockHeader
 {
-    Pool* OwnerPool;    ///< ¼ÒÀ¯ Pool. nullptrÀÌ¸é System MallocÀ¸·Î ÇÒ´çµÊ.
-    std::size_t Size;   ///< ÀüÃ¼ ÇÒ´ç Å©±â (Header Æ÷ÇÔ).
+    Pool* OwnerPool;    ///< ì†Œìœ  Pool. nullptrì´ë©´ System Mallocìœ¼ë¡œ í• ë‹¹ë¨.
+    std::size_t Size;   ///< ì „ì²´ í• ë‹¹ í¬ê¸° (Header í¬í•¨).
 };
 
-/// @brief ¿äÃ» Å©±â¿¡ µû¶ó ÀûÀıÇÑ Pool·Î ¶ó¿ìÆÃÇÏ´Â Áß¾Ó °ü¸®ÀÚ.
-/// Meyers Singleton. Bit Scan ±â¹İ O(1) ¶ó¿ìÆÃ.
+/// @brief ìš”ì²­ í¬ê¸°ì— ë”°ë¼ ì ì ˆí•œ Poolë¡œ ë¼ìš°íŒ…í•˜ëŠ” ì¤‘ì•™ ê´€ë¦¬ì.
+/// Meyers Singleton. Bit Scan ê¸°ë°˜ O(1) ë¼ìš°íŒ….
 class PoolManager final
 {
   public:
@@ -31,12 +31,12 @@ class PoolManager final
     void Initialize();
     void Shutdown();
 
-    /// @brief ½º·¹µå ¾ÈÀüÇÑ ¸Ş¸ğ¸® ÇÒ´ç.
-    /// @param size »ç¿ëÀÚ ¿äÃ» Å©±â (Byte).
+    /// @brief ìŠ¤ë ˆë“œ ì•ˆì „í•œ ë©”ëª¨ë¦¬ í• ë‹¹.
+    /// @param size ì‚¬ìš©ì ìš”ì²­ í¬ê¸° (Byte).
     [[nodiscard]] void* Allocate(std::size_t size);
 
-    /// @brief ½º·¹µå ¾ÈÀüÇÑ ¸Ş¸ğ¸® ÇØÁ¦.
-    /// @param ptr Allocate·Î ÇÒ´ç¹ŞÀº ¸Ş¸ğ¸® ÁÖ¼Ò.
+    /// @brief ìŠ¤ë ˆë“œ ì•ˆì „í•œ ë©”ëª¨ë¦¬ í•´ì œ.
+    /// @param ptr Allocateë¡œ í• ë‹¹ë°›ì€ ë©”ëª¨ë¦¬ ì£¼ì†Œ.
     void Deallocate(void* ptr);
 
   private:
@@ -52,8 +52,8 @@ class PoolManager final
     std::vector<std::unique_ptr<Pool>> mPools;
     bool mIsInitialized = false;
 
-    static constexpr std::size_t MIN_BIT_SHIFT = 6;      ///< ÃÖ¼Ò Ã»Å© 64B = 2^6.
-    static constexpr std::size_t MAX_BLOCK_SIZE = 4096;   ///< ÀÌ Å©±â ÃÊ°ú ½Ã System Malloc fallback.
+    static constexpr std::size_t MIN_BIT_SHIFT = 6;      ///< ìµœì†Œ ì²­í¬ 64B = 2^6.
+    static constexpr std::size_t MAX_BLOCK_SIZE = 4096;   ///< ì´ í¬ê¸° ì´ˆê³¼ ì‹œ System Malloc fallback.
     static constexpr std::size_t POOL_COUNT = 7;          ///< 64, 128, 256, 512, 1024, 2048, 4096.
 };
 

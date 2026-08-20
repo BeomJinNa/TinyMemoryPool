@@ -47,7 +47,7 @@ void TestFunctional()
 void TestBenchmark()
 {
     std::cout << "=== 2. Benchmark (std vs TinyMemoryPool) ===" << std::endl;
-    const int ITEM_COUNT = 1'000'000; // 100¸¸ °³
+    const int ITEM_COUNT = 1'000'000; // 100ë§Œ ê°œ
 
     {
         Timer t("Standard Allocator (std::vector)");
