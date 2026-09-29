@@ -11,8 +11,7 @@
 namespace TinyMemoryPool::Detail
 {
 
-/// @brief Win32 VirtualAlloc/VirtualFree 기반 가상 메모리 백엔드.
-/// 인스턴스 생성을 금지한 유틸리티 클래스.
+/// @brief VirtualAlloc과 VirtualFree로 가상 메모리 예약·커밋·해제를 처리한다.
 class WindowsMemory final
 {
   public:
@@ -32,6 +31,7 @@ class WindowsMemory final
 
     static inline void Release(void* ptr, [[maybe_unused]] std::size_t size) noexcept
     {
+        // MEM_RELEASE는 최초 예약 주소와 크기 0으로 예약 영역 전체를 해제한다.
         BOOL success = VirtualFree(ptr, 0, MEM_RELEASE);
         if(success == FALSE)
         {

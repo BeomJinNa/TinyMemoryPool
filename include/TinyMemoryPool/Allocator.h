@@ -10,8 +10,8 @@
 namespace TinyMemoryPool
 {
 
-/// @brief STL 호환 커스텀 Allocator.
-// 내부적으로 PoolManager를 통해 메모리를 할당/해제한다.
+/// @brief STL 컨테이너의 메모리 할당·반납을 TinyMemoryPool에 연결한다.
+/// @note 풀 수명 내 할당·해제는 동시 호출할 수 있다. 컨테이너·객체 접근의 동기화는 별도다.
 template <typename T>
 class Allocator
 {
@@ -31,18 +31,28 @@ class Allocator
 
     ~Allocator() noexcept = default;
 
-    [[nodiscard]] T* allocate(std::size_t n)
+    [[nodiscard]] T* allocate(std::size_t n) noexcept
     {
         if(n > std::numeric_limits<std::size_t>::max() / sizeof(T))
         {
-            throw std::bad_array_new_length();
+            Detail::AllocationFailure("Allocation size overflow.");
         }
 
-        void* ptr = Detail::EngineAllocate(n * sizeof(T));
+        void* ptr = nullptr;
+
+        // 풀의 기본 정렬보다 높은 정렬이 필요하면 정렬 지정 new/delete를 사용한다.
+        if constexpr(alignof(T) > Detail::PoolAlignment)
+        {
+            ptr = ::operator new(n * sizeof(T), std::align_val_t{alignof(T)}, std::nothrow);
+        }
+        else
+        {
+            ptr = Detail::EngineAllocate(n * sizeof(T));
+        }
 
         if(ptr == nullptr) [[unlikely]]
         {
-            throw std::bad_alloc();
+            Detail::AllocationFailure("Memory allocation failed.");
         }
 
         return static_cast<T*>(ptr);
@@ -50,7 +60,14 @@ class Allocator
 
     void deallocate(T* p, std::size_t n) noexcept
     {
-        Detail::EngineDeallocate(p, n * sizeof(T));
+        if constexpr(alignof(T) > Detail::PoolAlignment)
+        {
+            ::operator delete(p, std::align_val_t{alignof(T)});
+        }
+        else
+        {
+            Detail::EngineDeallocate(p, n * sizeof(T));
+        }
     }
 
     template <typename U>

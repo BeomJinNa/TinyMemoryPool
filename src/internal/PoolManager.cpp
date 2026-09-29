@@ -5,8 +5,9 @@
 
 #include <algorithm>
 #include <bit>
-#include <cstdlib>
+#include <limits>
 #include <memory>
+#include <new>
 
 namespace
 {
@@ -60,7 +61,7 @@ void PoolManager::Initialize()
     {
         auto newPool = std::make_unique<Pool>();
 
-        // 작은 청크일수록 초기 확보량을 늘려 Hot Path에서의 Grow 호출을 줄임
+        // 작은 크기의 풀은 청크를 더 많이 확보해 초기 확장 빈도를 줄인다.
         std::size_t initialItemCount = (currentChunkSize <= 256) ? 4096 : (currentChunkSize <= 1024) ? 1024 : 256;
 
         newPool->Initialize(currentChunkSize, currentChunkSize * initialItemCount);
@@ -90,6 +91,9 @@ void PoolManager::Shutdown()
 
 [[nodiscard]] void* PoolManager::Allocate(std::size_t size)
 {
+    if(size > std::numeric_limits<std::size_t>::max() - sizeof(BlockHeader))
+        return nullptr;
+
     const std::size_t totalSize = size + sizeof(BlockHeader);
 
     BlockHeader* header = nullptr;
@@ -108,8 +112,8 @@ void PoolManager::Shutdown()
     }
     else
     {
-        // 4KB 초과 시 시스템 할당으로 fallback
-        void* block = std::malloc(totalSize);
+        // 풀 상한보다 큰 요청도 반환 주소의 기본 정렬은 동일하게 유지한다.
+        void* block = ::operator new(totalSize, std::align_val_t{PoolAlignment}, std::nothrow);
         if(!block) [[unlikely]]
             return nullptr;
 
@@ -135,16 +139,16 @@ void PoolManager::Deallocate(void* ptr)
     }
     else
     {
-        std::free(header);
+        ::operator delete(header, std::align_val_t{PoolAlignment});
     }
 }
 
 [[nodiscard]] std::size_t PoolManager::GetPoolIndex(std::size_t totalSize) const
 {
-    // 64B 미만 요청도 최소 64B 풀(index 0)로 라우팅
+    // 헤더를 포함한 크기가 64바이트보다 작아도 첫 번째 풀을 사용한다.
     const std::size_t clampedSize = std::max(totalSize, static_cast<std::size_t>(1 << MIN_BIT_SHIFT));
 
-    // bit_width: C++20 <bit>. 대부분 BSR/LZCNT 하드웨어 명령어로 변환됨.
+    // 요청 크기를 담을 수 있는 가장 작은 2의 거듭제곱 크기 풀을 선택한다.
     return std::bit_width(clampedSize - 1) - MIN_BIT_SHIFT;
 }
 

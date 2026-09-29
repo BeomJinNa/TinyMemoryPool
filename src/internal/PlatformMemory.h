@@ -15,8 +15,8 @@
 namespace TinyMemoryPool::Detail
 {
 
-/// @brief 플랫폼별 가상 메모리 API를 통합하는 파사드 클래스.
-/// Reserve 실패 시 TMP_FATAL_ERROR로 즉시 종료한다.
+/// @brief 운영체제별 가상 메모리 처리를 공통 인터페이스로 제공한다.
+/// @note 예약 실패 시 진단을 출력하고 종료한다. 커밋·해제 실패는 각 백엔드에서 처리한다.
 class PlatformMemory final
 {
   public:

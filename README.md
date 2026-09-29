@@ -1,123 +1,117 @@
 # TinyMemoryPool
 
-**TinyMemoryPool**은 C++20 표준을 준수하는 스레드 안전(Thread-Safe) 메모리 풀 라이브러리입니다.
-STL 컨테이너(`std::vector`, `std::map` 등)와 호환되는 `Allocator` 인터페이스를 제공하며, 내부적으로 Intel TBB의 `concurrent_queue`를 사용하여 멀티 스레드 환경에서의 락 경합(Lock Contention)을 최소화합니다.
+STL 컨테이너에 연결해 사용하는 작은 C++ 메모리 풀 라이브러리입니다.
+TinyRenderer에서 사용하며, 크기별 청크 재사용과 멀티스레드 할당·반납을 지원합니다.
 
-## 1. 주요 특징 (Features)
+- **STL 연동**: `Allocator<T>`를 `vector`, `string`, `unordered_map` 등에 연결합니다.
+- **oneTBB 활용**: `concurrent_queue`로 가용 청크를 관리하고, 풀 확장은 mutex로 직렬화합니다.
+- **플랫폼 추상화**: STL allocator, 풀 관리, OS 가상 메모리 계층을 분리하여 사용부에 OS·TBB 헤더를 노출하지 않습니다.
 
-* **STL 호환**: `std::allocator_traits`를 지원하여 모든 STL 컨테이너에 즉시 적용 가능.
-* **Thread-Safe**: Lock-Free 자료구조를 사용하여 멀티 스레드 환경에서 안전하게 동작.
-* **Header Isolation**: Bridge 패턴을 적용하여, 라이브러리 사용 시 `<windows.h>`나 `tbb` 헤더 의존성이 외부로 전파되지 않음.
-* **구조**:
-    * **Layer 1**: STL Allocator Interface (Stateless)
-    * **Layer 2**: Pool Manager (Singleton Engine, 64B~4KB Buckets)
-    * **Layer 3**: OS Memory Interface (`VirtualAlloc` / `mmap`)
+Windows·POSIX backend를 포함하며, 현재 실행 검증 범위는 Windows x64입니다.
 
-## 2. 요구 사항 (Requirements)
+## 빠른 시작
 
-이 라이브러리를 사용하기 위해서는 다음 환경이 필요합니다.
-
-* **C++ Standard**: C++20 이상 (`std::bit_width`, `std::byte`, `concept` 사용)
-* **Build System**: CMake 3.15 이상
-* **Dependencies**:
-    * **Intel TBB (Threading Building Blocks)**: 필수 의존성입니다.
-    * CMake 설정 시 `find_package(TBB CONFIG REQUIRED)`가 실행되므로, 시스템이나 vcpkg 등을 통해 TBB가 설치되어 있어야 합니다.
-
-## 3. 통합 가이드 (Integration Guide)
-
-이 프로젝트는 **CMake Subdirectory** 방식을 권장합니다. 소스 코드를 직접 포함하여 빌드하므로 디버깅이 용이합니다.
-
-### 3.1. 프로젝트 추가
-`git submodule` 또는 코드를 복사하여 프로젝트의 하위 디렉토리(예: `third_party`)에 위치시킵니다.
-
-```bash
-# 예시
-git submodule add [Repository URL] third_party/TinyMemoryPool
-
-```
-
-### 3.2. CMakeLists.txt 설정
-
-사용하려는 상위 프로젝트(게임 엔진 등)의 `CMakeLists.txt`에 다음을 추가합니다.
+C++20, CMake 3.15 이상과 oneTBB가 필요합니다. 프로젝트에 포함하고 라이브러리를 연결합니다.
 
 ```cmake
-# 1. 라이브러리 하위 디렉토리 추가
 add_subdirectory(third_party/TinyMemoryPool)
-
-# ... (타겟 정의) ...
-add_executable(MyGameEngine src/main.cpp)
-
-# 2. 라이브러리 링크
-# TinyMemoryPool::TinyMemoryPool 별칭(ALIAS)을 사용하면
-# 향후 find_package로 변경해도 코드 수정이 필요 없습니다.
-target_link_libraries(MyGameEngine PRIVATE TinyMemoryPool::TinyMemoryPool)
-
-# [권장] LTO (Link Time Optimization) 활성화
-# 브릿지 함수(MemoryApi)의 인라인 최적화를 위해 활성화를 권장합니다.
-set_property(TARGET MyGameEngine PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-
+target_link_libraries(MyApplication PRIVATE TinyMemoryPool::TinyMemoryPool)
 ```
 
-## 4. 사용 방법 (Usage)
-
-외부에 공개된 헤더는 오직 `<TinyMemoryPool/Allocator.h>` 하나입니다.
-
-### 4.1. STL 컨테이너 적용
+컨테이너의 allocator만 지정하면 됩니다. 공유 풀은 최초 사용 시 초기화됩니다.
 
 ```cpp
-#include <vector>
-#include <map>
 #include <TinyMemoryPool/Allocator.h>
+#include <vector>
 
-void Example() {
-    // 1. std::vector 사용 예시
-    // 4KB 이하 객체는 Pool에서, 4KB 초과는 malloc으로 자동 처리됨
-    std::vector<int, TinyMemoryPool::Allocator<int>> v;
-    v.reserve(1000);
-    v.push_back(10);
-
-    // 2. std::map 사용 예시 (Node 기반 컨테이너에서 효율적)
-    std::map<int, float, std::less<int>, 
-             TinyMemoryPool::Allocator<std::pair<const int, float>>> m;
-    m[1] = 3.14f;
+int main()
+{
+    std::vector<int, TinyMemoryPool::Allocator<int>> values;
+    values.reserve(1000);
+    values.push_back(42);
 }
-
 ```
 
-### 4.2. 동작 방식 참고
+할당 실패 시에는 예외 대신 프로세스를 종료합니다. 풀 종료 전 컨테이너와 작업 스레드를 정리해야 하며, 같은 컨테이너의 동시 접근은 별도로 동기화해야 합니다.
 
-* **초기화**: `Allocator`가 최초로 인스턴스화되는 시점에 내부 엔진(`PoolManager`)이 자동으로 초기화됩니다. 별도의 `Init()` 함수 호출이 필요 없습니다.
-* **폴백(Fallback)**: 단일 할당 요청 크기가 **4096 Bytes(4KB)**를 초과할 경우, 메모리 풀을 거치지 않고 시스템 `malloc`을 직접 사용합니다.
+## STL 래퍼 예제
 
-## 5. 빌드 및 테스트 (Build & Test)
+TinyRenderer에서 사용하는 방식처럼 타입 별칭을 두면 allocator를 매번 적지 않아도 됩니다. `TVector`, `TString`, `THashMap`은 별도 컨테이너가 아니라 STL 컨테이너에 allocator를 지정한 별칭입니다.
 
-라이브러리를 단독으로 빌드하거나 테스트를 실행할 때 사용합니다.
+```cpp
+#include "PoolContainers.h"
+#include <iostream>
 
-```bash
-# 구성 (Configure)
-cmake -B out
+int main()
+{
+    using namespace TinyMemoryPool::Examples;
 
-# 빌드 (Build) - 반드시 Release 모드로 빌드해야 정확한 성능이 나옵니다.
+    TVector<int> objectIds = {101, 102};
+    TString sceneName = "TinyRenderer - STL allocator example";
+
+    THashMap<int, TString> objectNames;
+    objectNames.emplace(101, "Camera");
+    objectNames.emplace(102, "Light");
+
+    const TString& firstObjectName = objectNames.at(objectIds.front());
+    std::cout << sceneName << ": " << firstObjectName << '\n';
+}
+```
+
+- [PoolContainers.h](examples/PoolContainers.h): 별칭 정의
+- [stl_containers.cpp](examples/stl_containers.cpp): 객체 목록과 이름을 조회·출력하는 전체 예제
+
+예제 헤더는 설치 API에 포함하지 않습니다. `THashMap`의 키로 `TString`을 사용하려면 해당 타입에 맞는 해시 함수를 전달해야 합니다.
+
+## 예제와 테스트 빌드
+
+`TBB_DIR` 또는 `CMAKE_PREFIX_PATH`로 oneTBB 설치 위치를 지정합니다.
+
+```sh
+cmake -S . -B out -DTBB_DIR=/path/to/oneTBB/lib/cmake/TBB -DTMP_BUILD_EXAMPLES=ON
 cmake --build out --config Release
-
-# 테스트 실행
-./out/Release/TMP_Test
-
+ctest --test-dir out -C Release --output-on-failure
 ```
 
-> **주의**: Debug 모드에서는 Intel TBB의 내부 검증 로직과 인라인 최적화 부재로 인해 성능이 시스템 할당자보다 느리게 측정될 수 있습니다. 벤치마킹은 반드시 **Release/RelWithDebInfo** 모드에서 수행하십시오.
+- `TMP_BUILD_EXAMPLES`: 독립 예제 `TMP_StlExample` 빌드, 기본값 `OFF`
+- `TMP_BUILD_TESTS`: 최상위 프로젝트로 구성할 때 테스트 빌드, 기본값 `ON`
+- 단일 구성 생성기는 구성 단계에 `-DCMAKE_BUILD_TYPE=Release`를 추가합니다.
+- 공유 라이브러리 방식의 TBB는 실행 시 DLL 또는 공유 라이브러리 검색 경로도 필요합니다.
 
-## 6. 디렉토리 구조 (Directory Structure)
+## 내부 구조
 
-```text
-TinyMemoryPool/
-├── include/
-│   └── TinyMemoryPool/          # [Public] 외부 공개 헤더 경로
-│       ├── Allocator.h          # 사용자가 include 하는 메인 헤더
-│       ├── Config.h             # 내부 설정값
-│       └── Detail/              # 구현 은닉용 브릿지 헤더
-├── src/
-│   └── internal/                # [Private] 내부 구현 소스 (Pool, Manager 등)
-└── tests/                       # 기능 테스트 및 벤치마크 코드
+| 계층 | 역할 |
+| --- | --- |
+| `Allocator<T>` | STL allocator 인터페이스를 제공하며, 높은 정렬 요청은 시스템 할당으로 분기합니다. |
+| `MemoryApi` | 공개 헤더와 내부 풀 구현 사이의 할당·반납 접점입니다. |
+| `PoolManager` | 헤더 포함 요청 크기를 64~4096바이트 풀 또는 시스템 할당으로 분기합니다. |
+| `Pool` | 반납된 청크를 재사용합니다. 가용 청크가 없으면 블록을 확장하고 호출자 몫 하나를 확보합니다. |
+| `MemoryManager` | 하나의 가상 주소 영역을 예약하고 필요한 구간을 페이지 단위로 커밋합니다. |
+| `PlatformMemory` | Windows의 `VirtualAlloc/VirtualFree`와 POSIX의 `mmap/mprotect/munmap`을 분리합니다. |
 
-```
+기본 가상 주소 예약 크기는 1GiB이며, 전체를 한 번에 커밋하지 않습니다. 반납된 청크는 재사용하고, 풀 메모리는 관리자가 종료될 때 일괄 해제합니다. 공개 런타임 설정이나 풀 재시작 API는 제공하지 않습니다.
+
+할당은 우선 `try_pop`으로 청크를 가져옵니다. 실패하면 mutex 획득 후 다시 확인하고 필요할 때만 확장합니다. 확장 시 첫 청크는 공유 큐에 넣지 않고 호출자에게 반환하므로, 다른 스레드가 가용 청크를 소비하더라도 호출자 몫은 유지됩니다. 확장에 mutex를 사용하므로 전체 할당 경로가 lock-free인 구조는 아닙니다.
+
+## 사용 계약
+
+### 동시성과 수명
+
+공유 풀의 최초 초기화는 함수 지역 static으로 처리합니다. 풀 수명 내에서는 여러 스레드가 할당·반납할 수 있으며, 다른 스레드에서 할당한 메모리를 반납하는 것도 가능합니다.
+
+- **allocator의 동시성 지원이 같은 STL 컨테이너의 동시 수정을 허용하는 것은 아닙니다.** 컨테이너와 객체의 동기화는 별도입니다.
+- 스레드 간 객체 인계도 호출자가 동기화해야 합니다. 내부 초기화·종료 함수를 사용 중인 풀에 호출해서는 안 되며, 풀 종료 전 모든 작업 스레드를 합류시키고 객체·컨테이너를 정리해야 합니다.
+- **전역·정적 객체의 소멸 순서는 자동으로 해결하지 않습니다.** 예를 들어 빈 전역 컨테이너가 먼저 생성되고 `main`에서 풀을 처음 사용하면, 풀 종료 후 컨테이너가 메모리를 반납할 수 있습니다. 수명을 명시적으로 보장할 수 없다면 예제처럼 지역 객체로 사용합니다.
+
+### 크기와 정렬
+
+- `PoolAlignment`는 16과 `alignof(std::max_align_t)` 중 큰 값입니다. 검증한 Windows x64에서는 16바이트입니다.
+- 청크 크기가 64바이트 이상이어도 **payload의 64바이트 정렬을 뜻하지는 않습니다.** 반환 주소 앞에 내부 헤더가 배치됩니다.
+- `alignas(64)`처럼 `PoolAlignment`보다 높은 정렬이 필요한 타입은 풀 대신 정렬 지정 시스템 할당을 사용하며, 대응하는 aligned delete로 반납합니다.
+- 풀 상한 4096바이트에는 헤더가 포함됩니다. 16바이트 헤더인 환경에서는 payload 4080바이트까지 풀을 사용하고, 더 큰 요청은 시스템 할당으로 처리합니다.
+
+### 실패 처리
+
+`Allocator<T>::allocate`는 `noexcept`입니다. 원소 수 곱셈과 헤더 크기 덧셈의 오버플로, 시스템 할당 실패는 진단을 출력한 뒤 `std::terminate`로 종료합니다. 시스템 할당은 `std::nothrow`로 실패를 확인하며, 호출자에게 null이나 복구용 예외를 전달하지 않습니다.
+
+페이지 단위 크기 올림의 오버플로, 예약 영역 소진, OS 예약·커밋 실패도 같은 종료 정책을 따릅니다. 객체 생성자·표준 컨테이너·oneTBB의 예외 정책은 별도이며, 이 라이브러리가 사용 프로젝트의 예외 설정을 변경하지는 않습니다.

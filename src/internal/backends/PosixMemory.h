@@ -12,8 +12,7 @@
 namespace TinyMemoryPool::Detail
 {
 
-/// @brief POSIX mmap/munmap 기반 가상 메모리 백엔드.
-/// 인스턴스 생성을 금지한 유틸리티 클래스.
+/// @brief mmap으로 영역을 확보하고 mprotect로 접근 권한을 바꾸며 munmap으로 해제한다.
 class PosixMemory final
 {
   public:

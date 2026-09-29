@@ -3,7 +3,7 @@
 #include <exception>
 #include <iostream>
 
-/// @name TinyMemoryPool Debug Macros
+/// @name TinyMemoryPool 검증 및 오류 처리 매크로
 /// {@
 
 #if !defined(NDEBUG) || defined(_DEBUG)

@@ -3,21 +3,28 @@
 #include "MemoryManager.h"
 
 #include <cstddef>
+#include <limits>
 
 namespace TinyMemoryPool::Detail
 {
 
 void Pool::Initialize(std::size_t chunkSize, std::size_t initialBlockSize)
 {
+    if(chunkSize == 0 || initialBlockSize < chunkSize || initialBlockSize % chunkSize != 0)
+    {
+        TMP_FATAL_ERROR("Invalid pool block size.");
+    }
+
     mChunkSize = chunkSize;
     mNextBlockSize = initialBlockSize;
 
-    Grow();
+    // 초기화에서는 호출자용 청크도 반납하여 첫 블록 전체를 가용 상태로 둔다.
+    Push(GrowAndPop());
 }
 
 void Pool::Shutdown() noexcept
 {
-    // 큐 내부 노드만 정리. 실제 메모리 블록은 MemoryManager가 소유/해제한다.
+    // 큐만 비운다. 청크의 원본 메모리는 MemoryManager가 소유하고 해제한다.
     mFreeList.clear();
 }
 
@@ -30,16 +37,7 @@ void Pool::Shutdown() noexcept
         return ptr;
     }
 
-    if(Grow())
-    {
-        if(mFreeList.try_pop(ptr))
-        {
-            return ptr;
-        }
-    }
-
-    TMP_FATAL_ERROR("Failed to pop from pool after growing.");
-    return nullptr;
+    return GrowAndPop();
 }
 
 void Pool::Push(void* ptr)
@@ -52,31 +50,36 @@ std::size_t Pool::GetChunkSize() const noexcept
     return mChunkSize;
 }
 
-bool Pool::Grow()
+void* Pool::GrowAndPop()
 {
     std::lock_guard<std::mutex> lock(mGrowMutex);
 
-    // 락 대기 중 다른 스레드가 이미 확장했을 수 있음
-    if(!mFreeList.empty())
+    // 락을 기다리는 동안 청크가 반납되거나 풀이 확장됐을 수 있으므로 다시 확인한다.
+    void* ptr = nullptr;
+    if(mFreeList.try_pop(ptr))
     {
-        return true;
+        return ptr;
     }
 
     void* newBlock = ::TinyMemoryPool::MemoryManager::GetInstance().AllocateBlock(mNextBlockSize);
 
     const std::size_t numChunks = mNextBlockSize / mChunkSize;
-    auto currentChunk = static_cast<std::byte*>(newBlock);
+    auto* reservedChunk = static_cast<std::byte*>(newBlock);
+    auto* currentChunk = reservedChunk + mChunkSize;
 
-    for(std::size_t i = 0; i < numChunks; ++i)
+    // 다른 스레드는 이 락 없이 청크를 가져가므로, 호출자 몫 하나는 큐에 넣지 않는다.
+    for(std::size_t i = 1; i < numChunks; ++i)
     {
         mFreeList.push(currentChunk);
         currentChunk += mChunkSize;
     }
 
-    // 다음 확장 시 블록 크기를 2배로 (지수 성장 전략)
-    mNextBlockSize *= 2;
+    if(mNextBlockSize <= std::numeric_limits<std::size_t>::max() / 2)
+    {
+        mNextBlockSize *= 2;
+    }
 
-    return true;
+    return reservedChunk;
 }
 
 } // namespace TinyMemoryPool::Detail

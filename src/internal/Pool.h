@@ -8,8 +8,8 @@
 namespace TinyMemoryPool::Detail
 {
 
-/// @brief 단일 크기의 메모리 청크들을 관리하는 Lock-Free 기반(부분적) 풀.
-/// Intel TBB concurrent_queue를 사용하여 대부분의 할당/해제가 락 없이 동작한다.
+/// @brief TBB concurrent_queue로 가용 청크를 관리하는 고정 크기 풀.
+/// @note 초기화 후 Pop·Push는 동시 호출할 수 있다. 초기화·종료와 사용은 겹치지 않아야 한다.
 class Pool final
 {
   public:
@@ -20,27 +20,27 @@ class Pool final
     Pool& operator=(const Pool&) = delete;
 
     /// @brief 풀을 초기화하고 첫 메모리 블록을 할당한다.
-    /// @param chunkSize 관리할 청크의 크기 (Byte).
-    /// @param initialBlockSize 최초 할당할 블록의 크기 (Byte).
+    /// @param chunkSize 청크 하나의 크기(바이트).
+    /// @param initialBlockSize 첫 블록의 크기(바이트). 청크 크기의 양의 배수여야 한다.
     void Initialize(std::size_t chunkSize, std::size_t initialBlockSize);
 
     /// @brief 풀을 종료하고 내부 큐를 정리한다.
-    /// @note 실제 메모리 해제는 MemoryManager가 프로그램 종료 시 일괄 수행한다.
+    /// @note 모든 사용이 끝난 뒤 호출한다. 원본 메모리는 MemoryManager가 일괄 해제한다.
     void Shutdown() noexcept;
 
-    /// @brief 가용 청크를 하나 꺼낸다 (Thread-Safe).
-    /// @return 유효한 메모리 주소. 실패 시 TMP_FATAL_ERROR로 종료.
+    /// @brief 가용 청크를 하나 꺼낸다.
+    /// @return 유효한 청크 주소. 메모리 확보에 실패하면 프로그램을 종료한다.
     [[nodiscard]] void* Pop();
 
-    /// @brief 사용 완료된 청크를 반납한다 (Thread-Safe).
+    /// @brief 사용 완료된 청크를 반납한다.
     void Push(void* ptr);
 
     std::size_t GetChunkSize() const noexcept;
 
   private:
-    /// @brief 가용 청크 소진 시 MemoryManager로부터 새 블록을 받아 확장한다.
-    /// @note Double-Checked Locking으로 중복 확장을 방지한다.
-    bool Grow();
+    /// @brief 락 획득 후 큐를 다시 확인하고, 필요하면 확장하여 청크 하나를 확보한다.
+    /// @note 새 블록의 첫 청크는 공유 큐에 넣지 않고 반환한다.
+    [[nodiscard]] void* GrowAndPop();
 
   private:
     std::size_t mChunkSize = 0;
@@ -48,7 +48,7 @@ class Pool final
 
     tbb::concurrent_queue<void*> mFreeList;
 
-    std::mutex mGrowMutex; ///< 확장(Grow) 시에만 사용되는 Cold Path 뮤텍스.
+    std::mutex mGrowMutex; ///< 첫 try_pop이 실패한 경로에서만 획득한다.
 };
 
 } // namespace TinyMemoryPool::Detail
